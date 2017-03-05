@@ -1,7 +1,7 @@
 import request from 'request';
 
 const call = (context, endpoint) => {
-  console.log(context)
+  console.log(endpoint)
   if (!context.authorization) {
     return new Error('Authorization not provided');
   }
@@ -14,7 +14,7 @@ const call = (context, endpoint) => {
   };
   return new Promise((resolve, reject) => {
     request(options, (err, response, body) => {
-      console.log(body)
+      // console.log(body)
       if (err) {
         reject(err);
       } else if (response.statusCode > 300) {
@@ -36,19 +36,19 @@ const resolveFunctions = {
       return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/`);
     },
     organization(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organization/${args.id}/`);
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.id}/`);
     },
     fleets(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organization/${args.organizationId}/fleet/`);
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleet/`);
     },
     fleet(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organization/${args.organizationId}/fleet/${args.fleetId}`);
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleet/${args.fleetId}`);
     },
     organizationMetrics(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organization/${args.organizationId}/metrics/`);
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/metrics/`);
     },
     fleetMetrics(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organization/${args.organizationId}/fleet/${args.fleetId}/metrics/`);
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleet/${args.fleetId}/metrics/`);
     },
   },
   Mutation: {
