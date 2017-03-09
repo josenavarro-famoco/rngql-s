@@ -47,19 +47,33 @@ type FleetMetrics {
 type Organization {
   id: Int
   name: String
+  metrics: OrganizationMetrics
+}
+
+type Action {
+  id: Int
+  name: String
+  description: String
+}
+
+type Device {
+  id: Int
+  famoco_id: String
+  actions: [Action]
 }
 
 type Fleet {
   id: Int
   name: String
+  devices: [Device]
 }
 
 type Query {
   currentUser: User
   organizations: [Organization]
   organization(id: Int!): Organization
-  fleets: [Fleet]
-  fleet(id: Int!): Fleet
+  fleets(organizationId: Int!): [Fleet]
+  fleet(organizationId: Int!, fleetId: Int!): Fleet
   organizationMetrics(organizationId: Int!): OrganizationMetrics
   fleetMetrics(organizationId: Int!, fleetId: Int!): FleetMetrics
 }

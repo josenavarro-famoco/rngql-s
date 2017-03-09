@@ -1,7 +1,6 @@
 import request from 'request';
 
 const call = (context, endpoint) => {
-  console.log(endpoint)
   if (!context.authorization) {
     return new Error('Authorization not provided');
   }
@@ -39,10 +38,10 @@ const resolveFunctions = {
       return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.id}/`);
     },
     fleets(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleet/`);
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleets/`);
     },
     fleet(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleet/${args.fleetId}`);
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleets/${args.fleetId}`);
     },
     organizationMetrics(root, args, context) {
       return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/metrics/`);
@@ -50,6 +49,24 @@ const resolveFunctions = {
     fleetMetrics(root, args, context) {
       return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleet/${args.fleetId}/metrics/`);
     },
+  },
+  Organization: {
+    metrics(organization, query, context, info) {
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/metrics/`);
+    }
+  },
+  Fleet: {
+    devices(fleet) {
+      console.log('fleet', fleet);
+      console.log(`${process.env.ENDPOINT}/api/1.0/organizations/${fleet.organization.id}/devices/?fleet=${fleet.id}`)
+      return call({}, `${process.env.ENDPOINT}/api/1.0/organizations/${fleet.organization.id}/devices/?fleet=${fleet.id}`);
+    }
+  },
+  Device: {
+    actions(device) {
+      console.log(device)
+      return call({}, `${process.env.ENDPOINT}/api/1.0/organizations/${device.organization.id}/devices/${device.id}/actions/`);
+    }
   },
   Mutation: {
     logIn(root, args) {
