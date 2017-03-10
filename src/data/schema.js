@@ -49,9 +49,34 @@ type Organization {
   name: String
 }
 
+type Action {
+  id: Int,
+  device: Int,
+  organization: Int
+  from_profile: Int
+  to_profile: Int
+  name: String
+  description: String
+  create_date: String
+}
+
 type Fleet {
   id: Int
   name: String
+}
+
+type Device {
+  id: Int
+  famoco_id: String
+  fleet: String
+  sync_status: String
+  last_sync: String
+  actions: [Action]
+}
+
+type Devices {
+  count: Int
+  results: [Device]
 }
 
 type Query {
@@ -62,6 +87,10 @@ type Query {
   fleet(id: Int!): Fleet
   organizationMetrics(organizationId: Int!): OrganizationMetrics
   fleetMetrics(organizationId: Int!, fleetId: Int!): FleetMetrics
+  actions(deviceId: Int!): [Action]
+  action(deviceId: Int!, actionId: Int!): Action
+  device(famocoId: String): Device
+  devices(organizationId: Int): Devices
 }
 
 type Mutation {
