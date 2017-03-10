@@ -1,37 +1,7 @@
 import request from 'request';
 
-const devicePromise = (organizationId, item) => new Promise((resolve, reject) => {
-  const options = {
-    uri: `${process.env.ENDPOINT}/api/1.0/organizations/${organizationId}/devices/${item.id}/actions/`,
-    headers: {
-      // Authorization: context.authorization,
-      Authorization: TOKEN
-    },
-    json: true,
-  };
-
-  request(options, (err, response, body) => {
-    if (err) {
-      reject(err);
-    } else if (response.statusCode > 300) {
-      if (body.errors) {
-        reject(body.errors.detail);
-      }
-    }
-    const deviceInfo = Object.assign({}, item, {
-      fleet: item.fleet !== null ? item.fleet.name : '',
-      last_sync: item.state_details.last_sync,
-      sync_status: item.state_details.sync_status,
-      actions: body.results
-    })
-    resolve(deviceInfo);
-  })
-});
-
-// const pagePromise = (organizationId)
-const TOKEN = 'Bearer Mdb1Ub9Mf1pVR4nzsQUiVwmjZMrZ1r';
+const TOKEN = 'Bearer ZUje6y2oVJzeuwU8rqQnH4TMLg9meu';
 const call = (context, endpoint) => {
-  console.log(endpoint)
   // if (!context.authorization) {
   //   return new Error('Authorization not provided');
   // }
@@ -40,6 +10,9 @@ const call = (context, endpoint) => {
     headers: {
       // Authorization: context.authorization,
       Authorization: TOKEN
+    },
+    qs: {
+      page_size: 5
     },
     json: true,
   };
@@ -70,10 +43,10 @@ const resolveFunctions = {
       return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.id}/`);
     },
     fleets(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleet/`);
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleets/`);
     },
     fleet(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleet/${args.fleetId}`);
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleets/${args.fleetId}`);
     },
     organizationMetrics(root, args, context) {
       return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/metrics/`);
@@ -88,59 +61,60 @@ const resolveFunctions = {
       return call(context, `${process.env.ENDPOINT}/api/1.0/devices/${args.deviceId}/actions/${args.actionId}/`);
     },
     devices(root, args, context) {
-      return new Promise((resolve, reject) => {
-        const options = {
-          uri: `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/devices/`,
-          headers: {
-            // Authorization: context.authorization,
-            Authorization: TOKEN
-          },
-          json: true,
-          qs: {
-            page_size: 100,
-          }
-        };
-
-        request(options, (err, response, body) => {
-          const pr = body.results.map(item => devicePromise(args.organizationId, item));
-          Promise.all(pr).then((values) => {
-            resolve({
-              count: values.length,
-              results: values
-            })
-          }).catch(err => {
-            reject(err)
-          });
-        })
-      })
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/devices/`);
     },
     device(root, args, context) {
-      return new Promise((resolve, reject) => {
-        const options = {
-          uri: `${process.env.ENDPOINT}/api/1.0/devices/${args.famocoId}/`,
-          headers: {
-            // Authorization: context.authorization,
-            Authorization: TOKEN
-          },
-          json: true,
-        };
-        request(options, (err, response, body) => {
-          // console.log(body)
-          if (err) {
-            reject(err);
-          } else if (response.statusCode > 300) {
-            if (body.errors) {
-              reject(body.errors.detail);
-            }
-          }
-          const deviceInfo = Object.assign({}, body, {
-            fleet: body.fleet.name,
-            last_sync: body.state_details.last_sync,
-            sync_status: body.state_details.sync_status,
-          })
-          resolve(deviceInfo);
-        });
-      });
+      return call(context, `${process.env.ENDPOINT}/api/1.0/device/${args.famocoId}/devices/`);
+    },
+  },
+  Organization: {
+    metrics(organization, args, context, info) {
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/metrics/`);
+    },
+    devices(organization, args, context, info) {
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/devices/`);
+    },
+    fleets(organization, args, context, info) {
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/fleets/`);
+    },
+    profiles(organization, args, context, info) {
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/profiles/`);
+    },
+    applications(organization, args, context, info) {
+      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/applications/`);
+    },
+  },
+  Fleet: {
+    devices(fleet, args, context, info) {
+      return call({}, `${process.env.ENDPOINT}/api/1.0/organizations/${fleet.organization.id}/devices/?fleet=${fleet.id}`);
+    }
+  },
+  Device: {
+    actions(device, args, context, info) {
+      return call({}, `${process.env.ENDPOINT}/api/1.0/organizations/${device.organization.id}/devices/${device.id}/actions/`);
+    },
+    fleet(device, args, context, info) {
+      return device.fleet !== null ? device.fleet.name : null
+    },
+    last_sync(device, args, context, info) {
+      return device.state_details.last_sync
+    },
+    sync_status(device, args, context, info) {
+      return device.state_details.sync_status
+    },
+    profile(device, args, context, info) {
+      const profileFleet = device.fleet !== null && device.fleet.profile !== null ? device.fleet.profile.name : undefined
+      const profile = device.profile !== null ? device.profile.name : undefined
+      return  profile || profileFleet
+    },
+    fleet(device, args, context, info) {
+      return device.fleet !== null ? device.fleet.name : undefined
+    }
+  },
+  Profile: {
+    applications(profile, args, context, info) {
+      const calls = profile.applications.map(appId => call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${profile.organization.id}/applications/${appId}/`))
+      return Promise.all(calls);
     }
   },
   Mutation: {

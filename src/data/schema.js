@@ -45,12 +45,29 @@ type FleetMetrics {
 }
 
 type Organization {
-  id: Int
+  id: ID
   name: String
+  metrics: OrganizationMetrics
+  devices: [Device]
+  fleets: [Fleet]
+  applications: [Application]
+  profiles: [Profile]
+}
+
+type Application {
+  id: ID
+  package_name: String
+  package_version_code: String
+  package_version_name: String
+  label: String
+  apk: String
+  icon: String
+  create_date: String
+  size: Int
 }
 
 type Action {
-  id: Int,
+  id: ID,
   device: Int,
   organization: Int
   from_profile: Int
@@ -60,15 +77,28 @@ type Action {
   create_date: String
 }
 
-type Fleet {
-  id: Int
+type Profile {
+  id: ID
   name: String
+  comment: String
+  is_archived: Boolean
+  create_date: String
+  applications: [Application]
+}
+
+type Fleet {
+  id: ID
+  name: String
+  is_archived: Boolean
+  profile: Profile
+  devices: [Device]
 }
 
 type Device {
-  id: Int
+  id: ID
   famoco_id: String
   fleet: String
+  profile: String
   sync_status: String
   last_sync: String
   actions: [Action]
@@ -82,15 +112,15 @@ type Devices {
 type Query {
   currentUser: User
   organizations: [Organization]
-  organization(id: Int!): Organization
-  fleets: [Fleet]
-  fleet(id: Int!): Fleet
-  organizationMetrics(organizationId: Int!): OrganizationMetrics
-  fleetMetrics(organizationId: Int!, fleetId: Int!): FleetMetrics
-  actions(deviceId: Int!): [Action]
-  action(deviceId: Int!, actionId: Int!): Action
+  organization(id: ID!): Organization
+  fleets(organizationid: ID!): [Fleet]
+  fleet(organizationid: ID!, fleetid: ID!): Fleet
+  organizationMetrics(organizationid: ID!): OrganizationMetrics
+  fleetMetrics(organizationid: ID!, fleetid: ID!): FleetMetrics
+  actions(deviceid: ID!): [Action]
+  action(deviceid: ID!, actionid: ID!): Action
   device(famocoId: String): Device
-  devices(organizationId: Int): Devices
+  devices(organizationid: ID): Devices
 }
 
 type Mutation {
