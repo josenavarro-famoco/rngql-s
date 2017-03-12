@@ -101,6 +101,10 @@ type Device {
   profile: String
   sync_status: String
   last_sync: String
+  heartbeat: String
+  model: String
+  imei: [String]
+  maintenance_status: String
   actions: [Action]
 }
 

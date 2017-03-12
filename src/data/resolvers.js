@@ -1,6 +1,6 @@
 import request from 'request';
 
-const TOKEN = 'Bearer ZUje6y2oVJzeuwU8rqQnH4TMLg9meu';
+const TOKEN = 'Bearer Nw3NXxrKfdtfIrfwpy6uTimUyP8F83';
 const call = (context, endpoint) => {
   // if (!context.authorization) {
   //   return new Error('Authorization not provided');
@@ -12,7 +12,7 @@ const call = (context, endpoint) => {
       Authorization: TOKEN
     },
     qs: {
-      page_size: 5
+      page_size: 10
     },
     json: true,
   };
@@ -64,7 +64,7 @@ const resolveFunctions = {
       return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/devices/`);
     },
     device(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/device/${args.famocoId}/devices/`);
+      return call(context, `${process.env.ENDPOINT}/api/1.0/devices/${args.famocoId}/devices/`);
     },
   },
   Organization: {
@@ -109,6 +109,20 @@ const resolveFunctions = {
     },
     fleet(device, args, context, info) {
       return device.fleet !== null ? device.fleet.name : undefined
+    },
+    maintenance_status(device, args, context, info) {
+      return device.state_details.maintenance_status
+    },
+    profile(device, args, context, info) {
+      const profileFleet = device.fleet !== null && device.fleet.profile !== null ? device.fleet.profile.name : undefined
+      const profile = device.profile !== null ? device.profile.name : undefined
+      return  profile || profileFleet
+    },
+    imei(device, args, context, info) {
+      return device.hardware_details.imei
+    },
+    model(device, args, context, info) {
+      return device.hardware_details.model
     }
   },
   Profile: {
