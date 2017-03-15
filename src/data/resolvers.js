@@ -1,18 +1,18 @@
 import request from 'request';
 
-const TOKEN = 'Bearer Nw3NXxrKfdtfIrfwpy6uTimUyP8F83';
-const call = (context, endpoint) => {
-  // if (!context.authorization) {
-  //   return new Error('Authorization not provided');
-  // }
+const call = (args, context, endpoint) => {
+  console.log(context)
+  if (!context.authorization) {
+    return new Error('Authorization not provided');
+  }
   const options = {
     uri: endpoint,
     headers: {
-      // Authorization: context.authorization,
-      Authorization: TOKEN
+      Authorization: context.authorization,
     },
     qs: {
-      page_size: 10
+      page_size: args.page_size || 10,
+      page: args.page || 1,
     },
     json: true,
   };
@@ -26,7 +26,7 @@ const call = (context, endpoint) => {
           reject(body.errors.detail);
         }
       }
-      resolve(body.results || body);
+      resolve(body);
     });
   });
 }
@@ -34,64 +34,64 @@ const call = (context, endpoint) => {
 const resolveFunctions = {
   Query: {
     currentUser(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/users/current/`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/users/current/`);
     },
     organizations(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/`);
     },
     organization(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.id}/`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.id}/`);
     },
     fleets(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleets/`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleets/`);
     },
     fleet(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleets/${args.fleetId}`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleets/${args.fleetId}`);
     },
     organizationMetrics(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/metrics/`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/metrics/`);
     },
     fleetMetrics(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleet/${args.fleetId}/metrics/`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/fleet/${args.fleetId}/metrics/`);
     },
-    actions(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/devices/${args.deviceId}/actions/`);
+    logs(root, args, context) {
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/devices/${args.deviceId}/logs/`);
     },
-    action(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/devices/${args.deviceId}/actions/${args.actionId}/`);
+    log(root, args, context) {
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/devices/${args.deviceId}/logs/${args.logId}/`);
     },
     devices(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/devices/`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/${args.organizationId}/devices/`);
     },
     device(root, args, context) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/devices/${args.famocoId}/devices/`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/devices/${args.famocoId}/devices/`);
     },
   },
   Organization: {
     metrics(organization, args, context, info) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/metrics/`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/metrics/`);
     },
     devices(organization, args, context, info) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/devices/`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/devices/`);
     },
     fleets(organization, args, context, info) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/fleets/`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/fleets/`);
     },
     profiles(organization, args, context, info) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/profiles/`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/profiles/`);
     },
     applications(organization, args, context, info) {
-      return call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/applications/`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/${organization.id}/applications/`);
     },
   },
   Fleet: {
     devices(fleet, args, context, info) {
-      return call({}, `${process.env.ENDPOINT}/api/1.0/organizations/${fleet.organization.id}/devices/?fleet=${fleet.id}`);
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/${fleet.organization.id}/devices/?fleet=${fleet.id}`);
     }
   },
   Device: {
-    actions(device, args, context, info) {
-      return call({}, `${process.env.ENDPOINT}/api/1.0/organizations/${device.organization.id}/devices/${device.id}/actions/`);
+    logs(device, args, context, info) {
+      return call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/${device.organization.id}/devices/${device.id}/logs/`);
     },
     fleet(device, args, context, info) {
       return device.fleet !== null ? device.fleet.name : null
@@ -127,7 +127,7 @@ const resolveFunctions = {
   },
   Profile: {
     applications(profile, args, context, info) {
-      const calls = profile.applications.map(appId => call(context, `${process.env.ENDPOINT}/api/1.0/organizations/${profile.organization.id}/applications/${appId}/`))
+      const calls = profile.applications.map(appId => call(args, context, `${process.env.ENDPOINT}/api/1.0/organizations/${profile.organization.id}/applications/${appId}/`))
       return Promise.all(calls);
     }
   },

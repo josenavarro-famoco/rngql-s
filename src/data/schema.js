@@ -48,7 +48,7 @@ type Organization {
   id: ID
   name: String
   metrics: OrganizationMetrics
-  devices: [Device]
+  devices: Devices
   fleets: [Fleet]
   applications: [Application]
   profiles: [Profile]
@@ -66,7 +66,7 @@ type Application {
   size: Int
 }
 
-type Action {
+type Log {
   id: ID,
   device: Int,
   organization: Int
@@ -105,7 +105,7 @@ type Device {
   model: String
   imei: [String]
   maintenance_status: String
-  actions: [Action]
+  logs: Logs
 }
 
 type Devices {
@@ -113,16 +113,26 @@ type Devices {
   results: [Device]
 }
 
+type Logs {
+  count: Int
+  results: [Log]
+}
+
+type Organizations {
+  count: Int
+  results: [Organization]
+}
+
 type Query {
   currentUser: User
-  organizations: [Organization]
+  organizations: Organizations
   organization(id: ID!): Organization
   fleets(organizationid: ID!): [Fleet]
   fleet(organizationid: ID!, fleetid: ID!): Fleet
   organizationMetrics(organizationid: ID!): OrganizationMetrics
   fleetMetrics(organizationid: ID!, fleetid: ID!): FleetMetrics
-  actions(deviceid: ID!): [Action]
-  action(deviceid: ID!, actionid: ID!): Action
+  logs(deviceid: ID!): [Log]
+  log(deviceid: ID!, logid: ID!): Log
   device(famocoId: String): Device
   devices(organizationid: ID): Devices
 }
